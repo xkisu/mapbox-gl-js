@@ -3,6 +3,7 @@
 const createVertexArrayType = require('./vertex_array_type');
 const packUint8ToFloat = require('../shaders/encode_attribute').packUint8ToFloat;
 const VertexBuffer = require('../gl/vertex_buffer');
+const Context = require('../gl/context');
 
 import type StyleLayer from '../style/style_layer';
 import type {ViewType, StructArray, SerializedStructArray, StructArrayTypeParameters} from '../util/struct_array';
@@ -55,7 +56,7 @@ interface Binder {
 
     defines(): Array<string>;
 
-    setUniforms(gl: WebGLRenderingContext,
+    setUniforms(context: Context,
                 program: Program,
                 layer: StyleLayer,
                 globalProperties: { zoom: number }): void;
@@ -80,8 +81,10 @@ class ConstantBinder implements Binder {
 
     populatePaintArray() {}
 
-    setUniforms(gl: WebGLRenderingContext, program: Program, layer: StyleLayer, {zoom}: { zoom: number }) {
+    setUniforms(context: Context, program: Program, layer: StyleLayer, {zoom}: { zoom: number }) {
         const value = layer.getPaintValue(this.property, { zoom: this.useIntegerZoom ? Math.floor(zoom) : zoom });
+        const gl = context.gl;  // TODO
+
         if (this.type === 'color') {
             gl.uniform4f(program.uniforms[`u_${this.name}`], value.r, value.g, value.b, value.a);
         } else {
@@ -131,8 +134,8 @@ class SourceFunctionBinder implements Binder {
         }
     }
 
-    setUniforms(gl: WebGLRenderingContext, program: Program) {
-        gl.uniform1f(program.uniforms[`a_${this.name}_t`], 0);
+    setUniforms(context: Context, program: Program) {
+        context.gl.uniform1f(program.uniforms[`a_${this.name}_t`], 0);
     }
 }
 
@@ -186,9 +189,9 @@ class CompositeFunctionBinder implements Binder {
         }
     }
 
-    setUniforms(gl: WebGLRenderingContext, program: Program, layer: StyleLayer, {zoom}: { zoom: number }) {
+    setUniforms(context: Context, program: Program, layer: StyleLayer, {zoom}: { zoom: number }) {
         const f = layer.getPaintInterpolationFactor(this.property, this.useIntegerZoom ? Math.floor(zoom) : zoom, this.zoom, this.zoom + 1);
-        gl.uniform1f(program.uniforms[`a_${this.name}_t`], f);
+        context.gl.uniform1f(program.uniforms[`a_${this.name}_t`], f);
     }
 }
 
@@ -322,9 +325,9 @@ class ProgramConfiguration {
         return result;
     }
 
-    setUniforms(gl: WebGLRenderingContext, program: Program, layer: StyleLayer, globalProperties: { zoom: number }) {
+    setUniforms(context: Context, program: Program, layer: StyleLayer, globalProperties: { zoom: number }) {
         for (const name in this.binders) {
-            this.binders[name].setUniforms(gl, program, layer, globalProperties);
+            this.binders[name].setUniforms(context, program, layer, globalProperties);
         }
     }
 
@@ -349,9 +352,9 @@ class ProgramConfiguration {
         return self;
     }
 
-    upload(gl: WebGLRenderingContext) {
+    upload(context: Context) {
         if (this.paintVertexArray) {
-            this.paintVertexBuffer = new VertexBuffer(gl, this.paintVertexArray);
+            this.paintVertexBuffer = new VertexBuffer(context, this.paintVertexArray);
         }
     }
 
@@ -401,9 +404,9 @@ class ProgramConfigurationSet {
         return this.programConfigurations[layerId];
     }
 
-    upload(gl: WebGLRenderingContext) {
+    upload(context: Context) {
         for (const layerId in this.programConfigurations) {
-            this.programConfigurations[layerId].upload(gl);
+            this.programConfigurations[layerId].upload(context);
         }
     }
 

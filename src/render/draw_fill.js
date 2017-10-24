@@ -13,7 +13,7 @@ module.exports = drawFill;
 function drawFill(painter: Painter, sourceCache: SourceCache, layer: FillStyleLayer, coords: Array<TileCoord>) {
     if (layer.isOpacityZero(painter.transform.zoom)) return;
 
-    const gl = painter.gl;
+    const gl = painter.context.gl;
     gl.enable(gl.STENCIL_TEST);
 
     const pass = (!layer.paint['fill-pattern'] &&
@@ -65,13 +65,13 @@ function drawFillTiles(painter, sourceCache, layer, coords, drawFn) {
 }
 
 function drawFillTile(painter, sourceCache, layer, tile, coord, bucket, firstTile) {
-    const gl = painter.gl;
+    const gl = painter.context.gl;
     const programConfiguration = bucket.programConfigurations.get(layer.id);
 
     const program = setFillProgram('fill', layer.paint['fill-pattern'], painter, programConfiguration, layer, tile, coord, firstTile);
 
     program.draw(
-        gl,
+        painter.context,
         gl.TRIANGLES,
         layer.id,
         bucket.layoutVertexBuffer,
@@ -81,7 +81,7 @@ function drawFillTile(painter, sourceCache, layer, tile, coord, bucket, firstTil
 }
 
 function drawStrokeTile(painter, sourceCache, layer, tile, coord, bucket, firstTile) {
-    const gl = painter.gl;
+    const gl = painter.context.gl;
     const programConfiguration = bucket.programConfigurations.get(layer.id);
     const usePattern = layer.paint['fill-pattern'] && !layer.getPaintProperty('fill-outline-color');
 
@@ -89,7 +89,7 @@ function drawStrokeTile(painter, sourceCache, layer, tile, coord, bucket, firstT
     gl.uniform2f(program.uniforms.u_world, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
     program.draw(
-        gl,
+        painter.context,
         gl.LINES,
         layer.id,
         bucket.layoutVertexBuffer,
@@ -104,17 +104,17 @@ function setFillProgram(programId, usePattern, painter, programConfiguration, la
     if (!usePattern) {
         program = painter.useProgram(programId, programConfiguration);
         if (firstTile || program !== prevProgram) {
-            programConfiguration.setUniforms(painter.gl, program, layer, {zoom: painter.transform.zoom});
+            programConfiguration.setUniforms(painter.context, program, layer, {zoom: painter.transform.zoom});
         }
     } else {
         program = painter.useProgram(`${programId}Pattern`, programConfiguration);
         if (firstTile || program !== prevProgram) {
-            programConfiguration.setUniforms(painter.gl, program, layer, {zoom: painter.transform.zoom});
+            programConfiguration.setUniforms(painter.context, program, layer, {zoom: painter.transform.zoom});
             pattern.prepare(layer.paint['fill-pattern'], painter, program);
         }
         pattern.setTile(tile, painter, program);
     }
-    painter.gl.uniformMatrix4fv(program.uniforms.u_matrix, false, painter.translatePosMatrix(
+    painter.context.gl.uniformMatrix4fv(program.uniforms.u_matrix, false, painter.translatePosMatrix(
         coord.posMatrix, tile,
         layer.paint['fill-translate'],
         layer.paint['fill-translate-anchor']

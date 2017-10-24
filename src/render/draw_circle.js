@@ -14,7 +14,8 @@ function drawCircles(painter: Painter, sourceCache: SourceCache, layer: CircleSt
     if (painter.renderPass !== 'translucent') return;
     if (layer.isOpacityZero(painter.transform.zoom)) return;
 
-    const gl = painter.gl;
+    const context = painter.context;
+    const gl = context.gl;
 
     painter.setDepthSublayer(0);
     painter.depthMask(false);
@@ -32,7 +33,7 @@ function drawCircles(painter: Painter, sourceCache: SourceCache, layer: CircleSt
 
         const programConfiguration = bucket.programConfigurations.get(layer.id);
         const program = painter.useProgram('circle', programConfiguration);
-        programConfiguration.setUniforms(gl, program, layer, {zoom: painter.transform.zoom});
+        programConfiguration.setUniforms(context, program, layer, {zoom: painter.transform.zoom});
 
         gl.uniform1f(program.uniforms.u_camera_to_center_distance, painter.transform.cameraToCenterDistance);
         gl.uniform1i(program.uniforms.u_scale_with_map, layer.paint['circle-pitch-scale'] === 'map' ? 1 : 0);
@@ -53,7 +54,7 @@ function drawCircles(painter: Painter, sourceCache: SourceCache, layer: CircleSt
         ));
 
         program.draw(
-            gl,
+            context,
             gl.TRIANGLES,
             layer.id,
             bucket.layoutVertexBuffer,

@@ -18,7 +18,7 @@ function draw(painter: Painter, source: SourceCache, layer: FillExtrusionStyleLa
     if (layer.isOpacityZero(painter.transform.zoom)) return;
 
     if (painter.renderPass === '3d') {
-        const gl = painter.gl;
+        const gl = painter.context.gl;
 
         gl.disable(gl.STENCIL_TEST);
         gl.enable(gl.DEPTH_TEST);
@@ -38,7 +38,8 @@ function drawExtrusionTexture(painter, layer) {
     const renderedTexture = layer.viewportFrame;
     if (!renderedTexture) return;
 
-    const gl = painter.gl;
+    const context = painter.context;
+    const gl = context.gl;
     const program = painter.useProgram('extrusionTexture');
 
     gl.disable(gl.STENCIL_TEST);
@@ -56,7 +57,7 @@ function drawExtrusionTexture(painter, layer) {
 
     gl.uniform2f(program.uniforms.u_world, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
-    painter.viewportVAO.bind(gl, program, painter.viewportBuffer);
+    painter.viewportVAO.bind(context, program, painter.viewportBuffer);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }
 
@@ -65,13 +66,15 @@ function drawExtrusion(painter, source, layer, coord) {
     const bucket: ?FillExtrusionBucket = (tile.getBucket(layer): any);
     if (!bucket) return;
 
-    const gl = painter.gl;
+    const context = painter.context;
+    const gl = context.gl;
 
     const image = layer.paint['fill-extrusion-pattern'];
 
     const programConfiguration = bucket.programConfigurations.get(layer.id);
     const program = painter.useProgram(image ? 'fillExtrusionPattern' : 'fillExtrusion', programConfiguration);
-    programConfiguration.setUniforms(gl, program, layer, {zoom: painter.transform.zoom});
+
+    programConfiguration.setUniforms(painter.context, program, layer, {zoom: painter.transform.zoom});
 
     if (image) {
         if (pattern.isPatternMissing(image, painter)) return;
@@ -80,7 +83,7 @@ function drawExtrusion(painter, source, layer, coord) {
         gl.uniform1f(program.uniforms.u_height_factor, -Math.pow(2, coord.z) / tile.tileSize / 8);
     }
 
-    painter.gl.uniformMatrix4fv(program.uniforms.u_matrix, false, painter.translatePosMatrix(
+    painter.context.gl.uniformMatrix4fv(program.uniforms.u_matrix, false, painter.translatePosMatrix(
         coord.posMatrix,
         tile,
         layer.paint['fill-extrusion-translate'],
@@ -90,7 +93,7 @@ function drawExtrusion(painter, source, layer, coord) {
     setLight(program, painter);
 
     program.draw(
-        gl,
+        context,
         gl.TRIANGLES,
         layer.id,
         bucket.layoutVertexBuffer,
@@ -100,7 +103,7 @@ function drawExtrusion(painter, source, layer, coord) {
 }
 
 function setLight(program, painter) {
-    const gl = painter.gl;
+    const gl = painter.context.gl;
     const light = painter.style.light;
 
     const _lp = light.calculated.position,
