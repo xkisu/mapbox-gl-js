@@ -19,7 +19,7 @@ module.exports = function drawLine(painter: Painter, sourceCache: SourceCache, l
     painter.setDepthSublayer(0);
     context.depthMask.set(false);
 
-    gl.enable(gl.STENCIL_TEST);
+    context.stencilTest.set(true);
 
     // don't draw zero-width lines
     if (layer.paint['line-width'] <= 0) return;

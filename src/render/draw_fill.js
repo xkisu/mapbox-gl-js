@@ -15,7 +15,7 @@ function drawFill(painter: Painter, sourceCache: SourceCache, layer: FillStyleLa
 
     const context = painter.context;
     const gl = context.gl;
-    gl.enable(gl.STENCIL_TEST);
+    context.stencilTest.set(true);
 
     const pass = (!layer.paint['fill-pattern'] &&
         layer.isPaintValueFeatureConstant('fill-color') &&

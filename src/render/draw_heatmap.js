@@ -24,7 +24,7 @@ function drawHeatmap(painter: Painter, sourceCache: SourceCache, layer: HeatmapS
 
     // Allow kernels to be drawn across boundaries, so that
     // large kernels are not clipped to tiles
-    gl.disable(gl.STENCIL_TEST);
+    context.stencilTest.set(false);
 
     renderToTexture(gl, painter, layer);
 
@@ -66,7 +66,7 @@ function drawHeatmap(painter: Painter, sourceCache: SourceCache, layer: HeatmapS
             programConfiguration);
     }
 
-    renderTextureToMap(gl, painter, layer);
+    renderTextureToMap(context, painter, layer);
 }
 
 function renderToTexture(gl, painter, layer) {
@@ -111,7 +111,8 @@ function bindTextureFramebuffer(gl, painter, texture, fbo) {
     }
 }
 
-function renderTextureToMap(gl, painter, layer) {
+function renderTextureToMap(context, painter, layer) {
+    const gl = context.gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
     gl.activeTexture(gl.TEXTURE2);
@@ -139,12 +140,12 @@ function renderTextureToMap(gl, painter, layer) {
     mat4.ortho(matrix, 0, painter.width, painter.height, 0, 0, 1);
     gl.uniformMatrix4fv(program.uniforms.u_matrix, false, matrix);
 
-    gl.disable(gl.DEPTH_TEST);
+    context.depthTest.set(false);
 
     gl.uniform2f(program.uniforms.u_world, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
     painter.viewportVAO.bind(painter.context, program, painter.viewportBuffer);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-    gl.enable(gl.DEPTH_TEST);
+    context.depthTest.set(true);
 }
