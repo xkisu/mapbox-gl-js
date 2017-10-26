@@ -146,8 +146,8 @@ class Painter {
 
         // We are blending the new pixels *behind* the existing pixels. That way we can
         // draw front-to-back and use then stencil buffer to cull opaque pixels early.
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        context.blend.set(true);
+        context.blendFunc.set([gl.ONE, gl.ONE_MINUS_SRC_ALPHA]);
 
         context.stencilTest.set(true);
 
@@ -344,7 +344,7 @@ class Painter {
             this.currentLayer = layerIds.length - 1;
 
             if (!this._showOverdrawInspector) {
-                this.context.gl.disable(this.context.gl.BLEND);
+                this.context.blend.set(false);
             }
 
             for (this.currentLayer; this.currentLayer >= 0; this.currentLayer--) {
@@ -374,7 +374,7 @@ class Painter {
             let sourceCache;
             let coords = [];
 
-            this.context.gl.enable(this.context.gl.BLEND);
+            this.context.blend.set(true);
 
             this.currentLayer = 0;
 
@@ -489,15 +489,16 @@ class Painter {
         if (!enabled && !this._showOverdrawInspector) return;
         this._showOverdrawInspector = enabled;
 
-        const gl = this.context.gl;
+        const context = this.context;
+        const gl = context.gl;
         if (enabled) {
-            gl.blendFunc(gl.CONSTANT_COLOR, gl.ONE);
+            context.blendFunc.set([gl.CONSTANT_COLOR, gl.ONE]);
             const numOverdrawSteps = 8;
             const a = 1 / numOverdrawSteps;
-            gl.blendColor(a, a, a, 0);
-            this.context.clear({ color: [0, 0, 0, 1] });
+            context.blendColor.set([a, a, a, 0]);
+            context.clear({ color: [0, 0, 0, 1] });
         } else {
-            gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+            context.blendFunc.set([gl.ONE, gl.ONE_MINUS_SRC_ALPHA]);
         }
     }
 
