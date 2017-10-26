@@ -12,10 +12,13 @@ import type TileCoord from '../source/tile_coord';
 module.exports = function drawLine(painter: Painter, sourceCache: SourceCache, layer: LineStyleLayer, coords: Array<TileCoord>) {
     if (painter.renderPass !== 'translucent') return;
     if (layer.isOpacityZero(painter.transform.zoom)) return;
-    painter.setDepthSublayer(0);
-    painter.depthMask(false);
 
-    const gl = painter.context.gl;
+    const context = painter.context;
+    const gl = context.gl;
+
+    painter.setDepthSublayer(0);
+    context.depthMask.set(false);
+
     gl.enable(gl.STENCIL_TEST);
 
     // don't draw zero-width lines

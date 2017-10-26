@@ -21,7 +21,7 @@ function drawRaster(painter: Painter, sourceCache: SourceCache, layer: RasterSty
     const program = painter.useProgram('raster');
 
     gl.enable(gl.DEPTH_TEST);
-    painter.depthMask(layer.getPaintValue('raster-opacity', {zoom: zoom}) === 1);
+    context.depthMask.set(layer.getPaintValue('raster-opacity', {zoom: zoom}) === 1);
     // Change depth function to prevent double drawing in areas where tiles overlap.
     gl.depthFunc(gl.LESS);
 
