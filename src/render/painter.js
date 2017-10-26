@@ -206,33 +206,6 @@ class Painter {
         }
     }
 
-    /*
-     * Reset the color buffers of the drawing canvas.
-     */
-    clearColor() {
-        const gl = this.context.gl;
-        gl.clearColor(0, 0, 0, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-    }
-
-    /*
-     * Reset the drawing canvas by clearing the stencil buffer so that we can draw
-     * new tiles at the same location, while retaining previously drawn pixels.
-     */
-    clearStencil() {
-        const gl = this.context.gl;
-        gl.clearStencil(0x0);
-        gl.stencilMask(0xFF);
-        gl.clear(gl.STENCIL_BUFFER_BIT);
-    }
-
-    clearDepth() {
-        const gl = this.context.gl;
-        gl.clearDepth(1);
-        this.depthMask(true);
-        gl.clear(gl.DEPTH_BUFFER_BIT);
-    }
-
     _renderTileClippingMasks(coords: Array<TileCoord>) {
         const gl = this.context.gl;
         gl.colorMask(false, false, false, false);
@@ -278,6 +251,8 @@ class Painter {
         this.lineAtlas = style.lineAtlas;
         this.imageManager = style.imageManager;
         this.glyphManager = style.glyphManager;
+
+        const context = this.context;
 
         for (const id in style.sourceCaches) {
             const sourceCache = this.style.sourceCaches[id];
@@ -325,7 +300,7 @@ class Painter {
                     coords = [];
 
                     if (sourceCache) {
-                        this.clearStencil();
+                        context.clear({ stencil: 0x0 });    // TODO in native, 0 is the default; somehow we should be able to remove value the arg here?
                         coords = sourceCache.getVisibleCoordinates();
                     }
 
@@ -341,7 +316,7 @@ class Painter {
                 renderTarget.bindWithDepth(this.depthRbo);
 
                 if (first) {
-                    this.clearDepth();
+                    context.clear({ depth: 1 });    // TODO as above, in native, 1 is the default; somehow we should be able to remove value the arg here?
                     first = false;
                 }
 
@@ -352,8 +327,7 @@ class Painter {
         }
 
         // Clear buffers in preparation for drawing to the main framebuffer
-        this.clearColor();
-        this.clearDepth();
+        context.clear({ color: [0, 0, 0, 0], depth: 1 });       // TODO see above `context.clear`s
 
         this.showOverdrawInspector(options.showOverdrawInspector);
 
@@ -380,7 +354,7 @@ class Painter {
                     coords = [];
 
                     if (sourceCache) {
-                        this.clearStencil();
+                        context.clear({ stencil: 0x0 });
                         coords = sourceCache.getVisibleCoordinates();
                         if (sourceCache.getSource().isTileClipped) {
                             this._renderTileClippingMasks(coords);
@@ -411,7 +385,7 @@ class Painter {
                     coords = [];
 
                     if (sourceCache) {
-                        this.clearStencil();
+                        context.clear({ stencil: 0x0 });
                         coords = sourceCache.getVisibleCoordinates();
                         if (sourceCache.getSource().isTileClipped) {
                             this._renderTileClippingMasks(coords);
@@ -527,8 +501,7 @@ class Painter {
             const numOverdrawSteps = 8;
             const a = 1 / numOverdrawSteps;
             gl.blendColor(a, a, a, 0);
-            gl.clearColor(0, 0, 0, 1);
-            gl.clear(gl.COLOR_BUFFER_BIT);
+            this.context.clear({ color: [0, 0, 0, 1] });
         } else {
             gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         }
