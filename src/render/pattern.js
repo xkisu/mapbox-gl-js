@@ -28,7 +28,8 @@ exports.isPatternMissing = function(image: CrossFaded<string>, painter: Painter)
 };
 
 exports.prepare = function (image: CrossFaded<string>, painter: Painter, program: Program) {
-    const gl = painter.context.gl;
+    const context = painter.context;
+    const gl = context.gl;
 
     const imagePosA = painter.imageManager.getPattern(image.from);
     const imagePosB = painter.imageManager.getPattern(image.to);
@@ -47,7 +48,7 @@ exports.prepare = function (image: CrossFaded<string>, painter: Painter, program
     gl.uniform1f(program.uniforms.u_scale_a, image.fromScale);
     gl.uniform1f(program.uniforms.u_scale_b, image.toScale);
 
-    gl.activeTexture(gl.TEXTURE0);
+    context.activeTexture.set(gl.TEXTURE0);
     painter.imageManager.bind(painter.context);
 };
 
