@@ -98,7 +98,7 @@ function drawRaster(painter: Painter, sourceCache: SourceCache, layer: RasterSty
         }
     }
 
-    context.depthFunc.set(context.gl.LEQUAL);   // TODO bad
+    context.depthFunc.set(gl.LEQUAL);
 }
 
 function spinWeights(angle) {

@@ -20,11 +20,8 @@ class IndexBuffer {
         // The bound index buffer is part of vertex array object state. We don't want to
         // modify whatever VAO happens to be currently bound, so make sure the default
         // vertex array provided by the context is bound instead.
-        if (gl.extVertexArrayObject === undefined) {
-            (gl: any).extVertexArrayObject = gl.getExtension("OES_vertex_array_object");
-        }
-        if (gl.extVertexArrayObject) {
-            (gl: any).extVertexArrayObject.bindVertexArrayOES(null);
+        if (context.extVertexArrayObject) {
+            context.bindVertexArrayOES.set(null);
         }
 
         context.bindElementBuffer.set(this.buffer);
@@ -36,7 +33,12 @@ class IndexBuffer {
     }
 
     bind() {
+        // const gl = this.context.gl;
+        // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.buffer);
         this.context.bindElementBuffer.set(this.buffer);
+        // TODO not sure why this doesn't work, but using bindElementBuffer throws:
+        // [.Offscreen-For-WebGL-0x7fbaf382a800]GL ERROR :GL_INVALID_OPERATION :
+        //  glDrawElements: bound to target 0x8893 : no buffer
     }
 
     updateData(array: SerializedStructArray) {

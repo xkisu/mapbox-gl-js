@@ -180,7 +180,7 @@ class ImageManager {
     }
 
     bind(context: Context) {
-        const gl = context.gl;      // TODO
+        const gl = context.gl;
         if (!this.atlasTexture) {
             this.atlasTexture = new Texture(context, this.atlasImage, gl.RGBA);
         } else if (this.dirty) {
