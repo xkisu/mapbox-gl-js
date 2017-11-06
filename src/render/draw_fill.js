@@ -14,7 +14,6 @@ function drawFill(painter: Painter, sourceCache: SourceCache, layer: FillStyleLa
     if (layer.isOpacityZero(painter.transform.zoom)) return;
 
     const context = painter.context;
-    const gl = context.gl;
     context.stencilTest.set(true);
 
     const pass = (!layer.paint['fill-pattern'] &&

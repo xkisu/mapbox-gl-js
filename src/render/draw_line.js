@@ -14,7 +14,6 @@ module.exports = function drawLine(painter: Painter, sourceCache: SourceCache, l
     if (layer.isOpacityZero(painter.transform.zoom)) return;
 
     const context = painter.context;
-    const gl = context.gl;
 
     painter.setDepthSublayer(0);
     context.depthMask.set(false);
