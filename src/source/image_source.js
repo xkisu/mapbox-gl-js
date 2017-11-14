@@ -14,18 +14,18 @@ const VertexBuffer = require('../gl/vertex_buffer');
 const VertexArrayObject = require('../render/vertex_array_object');
 const Texture = require('../render/texture');
 
-import type {Source} from './source';
+import type { Source } from './source';
 import type Map from '../ui/map';
 import type Dispatcher from '../util/dispatcher';
 import type Tile from './tile';
 import type Coordinate from '../geo/coordinate';
-import type {Callback} from '../types/callback';
+import type { Callback } from '../types/callback';
 
 export type ImageTextureSource =
-  ImageData |
-  HTMLImageElement |
-  HTMLCanvasElement |
-  HTMLVideoElement;
+    ImageData |
+    HTMLImageElement |
+    HTMLCanvasElement |
+    HTMLVideoElement;
 
 /**
  * A data source containing an image.
@@ -65,8 +65,14 @@ class ImageSource extends Evented implements Source {
     tileSize: number;
     url: string;
 
-    coordinates: [[number, number], [number, number], [number, number], [number, number]];
-    tiles: {[string]: Tile};
+    coordinates: [
+        [number, number],
+        [number, number],
+        [number, number],
+        [number, number]
+    ];
+    tiles: {
+        [string]: Tile };
     options: any;
     dispatcher: Dispatcher;
     map: Map;
@@ -98,13 +104,13 @@ class ImageSource extends Evented implements Source {
     }
 
     load() {
-        this.fire('dataloading', {dataType: 'source'});
+        this.fire('dataloading', { dataType: 'source' });
 
         this.url = this.options.url;
 
         ajax.getImage(this.map._transformRequest(this.url, ajax.ResourceType.Image), (err, image) => {
             if (err) {
-                this.fire('error', {error: err});
+                this.fire('error', { error: err });
             } else if (image) {
                 this.image = browser.getImageData(image);
                 this._finishLoading();
@@ -115,7 +121,7 @@ class ImageSource extends Evented implements Source {
     _finishLoading() {
         if (this.map) {
             this.setCoordinates(this.coordinates);
-            this.fire('data', {dataType: 'source', sourceDataType: 'metadata'});
+            this.fire('data', { dataType: 'source', sourceDataType: 'metadata' });
         }
     }
 
@@ -133,7 +139,12 @@ class ImageSource extends Evented implements Source {
      *   They do not have to represent a rectangle.
      * @returns {ImageSource} this
      */
-    setCoordinates(coordinates: [[number, number], [number, number], [number, number], [number, number]]) {
+    setCoordinates(coordinates: [
+        [number, number],
+        [number, number],
+        [number, number],
+        [number, number]
+    ]) {
         this.coordinates = coordinates;
 
         // Calculate which mercator tile is suitable for rendering the video in
@@ -181,7 +192,7 @@ class ImageSource extends Evented implements Source {
             delete this.boundsBuffer;
         }
 
-        this.fire('data', {dataType:'source', sourceDataType: 'content'});
+        this.fire('data', { dataType: 'source', sourceDataType: 'content' });
         return this;
     }
 
@@ -190,7 +201,7 @@ class ImageSource extends Evented implements Source {
         this._prepareImage(this.map.painter.gl, this.image);
     }
 
-    _prepareImage(gl: WebGLRenderingContext, image: ImageTextureSource, resize?: boolean) {
+    _prepareImage(gl: WebGLRenderingContext, image: ImageTextureSource, resize ? : boolean) {
         if (!this.boundsBuffer) {
             this.boundsBuffer = new VertexBuffer(gl, this._boundsArray);
         }
@@ -219,7 +230,7 @@ class ImageSource extends Evented implements Source {
         }
     }
 
-    loadTile(tile: Tile, callback: Callback<void>) {
+    loadTile(tile: Tile, callback: Callback < void > ) {
         // We have a single tile -- whoose coordinates are this.coord -- that
         // covers the image we want to render.  If that's the one being
         // requested, set it up with the image; otherwise, mark the tile as
